@@ -1,6 +1,12 @@
 <template>
   <v-app>
-    <nuxt></nuxt>
+    <v-container
+      class="fill-height"
+    >
+      <v-row>
+        <nuxt />
+      </v-row>
+    </v-container>
   </v-app>
 </template>
 

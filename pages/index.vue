@@ -1,15 +1,15 @@
 <template>
-  <v-layout
-    column
-    justify-center
-    align-center
+  <v-col
+    cols="12"
+    class="text-center"
   >
     <h1> Kakshya </h1>
     <v-btn
       color="primary"
+      @click="$router.push('/classroom')"
       v-text="'Create CLassroom'"
     />
-  </v-layout>
+  </v-col>
 </template>
 
 <script>
