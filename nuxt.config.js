@@ -17,8 +17,7 @@ export default {
   buildModules: [
     '@nuxtjs/vuetify',
   ],
-  modules: [
-  ],
+  modules: [],
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {
@@ -26,7 +25,6 @@ export default {
     }
   },
   build: {
-    extend (config, ctx) {
-    }
+    extend () {}
   }
 }
