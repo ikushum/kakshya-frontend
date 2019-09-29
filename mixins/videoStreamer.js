@@ -6,6 +6,7 @@ export default {
         isClassRequested: false,
         isSocketReady: false,
         isPeerConnectionStarted: false,
+        videoAvailable: false,
       },
       isClassCreator: false,
       localStream: null,
@@ -38,6 +39,7 @@ export default {
     gotStream(stream) {
       this.localStream = stream
       document.querySelector(`#${this.videoElementId}`).srcObject = stream
+      this.lifecycle.videoAvailable = true
       this.sendMessage('got user media')
       if (this.isClassCreator) {
         this.maybeStart()
@@ -63,8 +65,11 @@ export default {
         this.peerConnection.onaddstream = this.handleRemoteStreamAdded
         this.peerConnection.onremovestream = this.handleRemoteStreamRemoved
       } catch (e) {
-        console.log('Failed to create PeerConnection, exception: ' + e.message)
-        alert('Cannot create RTCPeerConnection object.');        
+        this.snackbar = {
+          display: true,
+          text: 'Cannot create RTCPeerConnection object.',
+          color: 'error'
+        }
         return
       }
     },
@@ -99,6 +104,7 @@ export default {
     },
     handleRemoteStreamAdded(event) {
       this.remoteStream = event.stream
+      this.lifecycle.videoAvailable = true
       document.querySelector(`#${this.videoElementId}`).srcObject = event.stream
     },
     handleRemoteStreamRemoved(event) {
@@ -119,23 +125,44 @@ export default {
     },
     listenSocket () {
       this.socket.on('created', (room) => {
+        this.snackbar = {
+          display: true,
+          text: 'Room ' + room + ' created',
+          color: 'success'
+        }        
         this.getUserMedia()
         this.isClassCreator = true
       })
       this.socket.on('full', (room) => {
-        alert('Room ' + room + ' is full')
+        this.snackbar = {
+          display: true,
+          text: 'Room ' + room + ' is full',
+          color: 'error'
+        }        
         this.lifecycle.isClassRequested = false
       })
       this.socket.on('notfound', (room) => {
-        alert('Room ' + room + ' not found')
+        this.snackbar = {
+          display: true,
+          text: 'Room ' + room + ' not found',
+          color: 'error'
+        }      
         this.lifecycle.isClassRequested = false
       })
       this.socket.on('join', (room) =>{
-        console.log('Another peer made a request to join room ' + room)
+        this.snackbar = {
+          display: true,
+          text: 'Another peer made a request to join room' + room,
+          color: 'info'
+        }              
         this.lifecycle.isSocketReady = true
       })
       this.socket.on('joined', (room) => {
-        console.log('joined: ' + room)
+        this.snackbar = {
+          display: true,
+          text: 'Room ' + room + ' joined',
+          color: 'success'
+        }    
         this.sendMessage('got user media')
         this.lifecycle.isSocketReady = true
       })

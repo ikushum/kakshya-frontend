@@ -42,20 +42,40 @@
         cols="6"
         class="text-center"
       >
+        <v-progress-circular
+          v-if="!lifecycle.videoAvailable"
+          :size="50"
+          color="primary"
+          indeterminate
+        />
         <video
+          v-show="lifecycle.videoAvailable"
           id="videoElement"
           autoplay
           :muted="isClassCreator"
           playsinline
         />
-        <v-btn
-          color="red"
-          text          
-          @click="leaveClass"
-          v-text="'Leave Class'"
-        />   
+        <div
+          class="my-3"
+        >
+          <v-btn
+            color="error"
+            text          
+            @click="leaveClass"
+            v-text="'Leave Class'"
+          />
+        </div>
       </v-col>
     </v-row>
+    <v-snackbar
+      v-model="snackbar.display"
+      :color="snackbar.color"
+      right
+    >
+      <span
+        v-text="snackbar.text"
+      />
+    </v-snackbar>    
   </v-col>
 </template>
 
@@ -65,14 +85,19 @@ export default {
   mixins: [videoStreamer],
   data () {
     return {
-      roomName: ''
+      roomName: '',
+      snackbar: {
+        color: 'success',
+        display: false,
+        text: ''
+      }
     }
   },
   methods: {
     leaveClass () {
       this.resetStream()
       this.roomName = ''
-    }
+    },
   }
 }
 </script>
