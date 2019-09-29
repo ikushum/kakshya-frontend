@@ -40,7 +40,7 @@
           v-show="!isInitiator"
           id="remoteVideo"
           autoplay
-          muted
+          :muted="isInitiator"
           playsinline
         />
         <v-btn
