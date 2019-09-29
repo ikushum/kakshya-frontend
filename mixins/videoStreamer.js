@@ -5,6 +5,7 @@ export default {
       isChannelReady: false,
       isInitiator: false,
       isStarted: false,
+      localStream: null,
       pc: null,
       socket: null,
       initialized: false,
@@ -15,6 +16,7 @@ export default {
     // todo seperate unnecessary methods from here
     initializeStream () {
       this.initialized = true
+      this.getUserMedia()
       this.initializeSocket()
     },
     getUserMedia () {
@@ -23,13 +25,14 @@ export default {
         video: true
       })
       .then(this.gotStream)
-      .catch(function(e) {
+      .catch((e) => {
         this.initialized = false
         console.error('getUserMedia() error: ' + e)
       })
     },
     gotStream(stream) {
       console.log('Adding local stream.')
+      this.localStream = stream
       document.querySelector(`#videoElement`).srcObject = stream
       this.sendMessage('got user media')
       if (this.isInitiator) {
@@ -42,9 +45,11 @@ export default {
     },
     maybeStart() {
       if (!this.isStarted && typeof this.localStream !== 'undefined' && this.isChannelReady) {
+        console.log('>>>>>> creating peer connection');        
         this.createPeerConnection()
         this.peerConnection.addStream(this.localStream)
         this.isStarted = true
+        console.log('isInitiator', this.isInitiator)
         if (this.isInitiator) {
           this.doCall()
         }
@@ -58,10 +63,12 @@ export default {
         this.peerConnection.onremovestream = this.handleRemoteStreamRemoved
       } catch (e) {
         console.log('Failed to create PeerConnection, exception: ' + e.message)
+        alert('Cannot create RTCPeerConnection object.');        
         return
       }
     },
     handleIceCandidate(event) {
+      console.log('icecandidate event: ', event);
       if (event.candidate) {
         this.sendMessage({
           type: 'candidate',
@@ -98,7 +105,7 @@ export default {
     handleRemoteStreamAdded(event) {
       console.log('Remote stream added.')
       this.remoteStream = event.stream
-      document.querySelector(`#videoElement`).srcObject = event.stream
+      document.querySelector(`#remoteVideo`).srcObject = event.stream
     },
     handleRemoteStreamRemoved(event) {
       console.log('Remote stream removed. Event: ', event)
@@ -119,30 +126,32 @@ export default {
       this.peerConnection = null
     },
     initializeSocket () {
-      this.socket = io.connect('https://localhost:8080')
+      this.socket = io.connect('https://192.168.1.70:8080', { secure: true, reconnect: true, rejectUnauthorized : false })
       this.socket.emit('create or join', this.roomName)
       console.log('Attempted to create or  join room', this.roomName)
       this.socket.on('created', (room) => {
         console.log('Created room ' + room)
         this.isInitiator = true
-        this.getUserMedia()
       })
       this.socket.on('full', function(room) {
         console.log('Room ' + room + ' is full')
       })
-      this.socket.on('join', function (room){
+      this.socket.on('join', (room) =>{
         console.log('Another peer made a request to join room ' + room)
         console.log('This peer is the initiator of room ' + room + '!')
         this.isChannelReady = true
+        // this.maybeStart()
       })
-      this.socket.on('joined', function(room) {
+      this.socket.on('joined', (room) => {
         console.log('joined: ' + room)
         this.isChannelReady = true
+        // this.createPeerConnection()
+        // this.isStarted = true
       })
       this.socket.on('log', function(array) {
         console.log.apply(console, array)
       })
-      this.socket.on('message', function(message) {
+      this.socket.on('message', (message) => {
         console.log('Client received message:', message)
         if (message === 'got user media') {
           this.maybeStart()

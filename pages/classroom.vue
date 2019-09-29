@@ -30,7 +30,15 @@
         cols="6"
       >
         <video 
+          v-show="isInitiator"
           id="videoElement"
+          autoplay
+          muted
+          playsinline
+        />
+        <video 
+          v-show="!isInitiator"
+          id="remoteVideo"
           autoplay
           muted
           playsinline
