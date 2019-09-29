@@ -1,5 +1,12 @@
+import fs from 'fs'
 export default {
   mode: 'spa',
+  server: {
+    https: {
+      key: fs.readFileSync('key.pem'),
+      cert: fs.readFileSync('cert.pem')
+    }
+  },
   head: {
     title: 'Kakshya',
     meta: [
