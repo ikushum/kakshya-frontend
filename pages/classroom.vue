@@ -11,19 +11,19 @@
       justify="center"
     >
       <v-col
-        v-if="!initialized"
+        v-if="!lifecycle.isClassRequested"
         cols="6"
       >
         <v-text-field
           v-model="roomName"
-          label="Enter Class Name"
+          label="Enter Class Room Name"
         />
         <v-btn
           color="primary"
           :disabled="!roomName"
           depressed
-          @click="initializeClass()"
-          v-text="'Create Class'"
+          @click="createClassRoom()"
+          v-text="'Create'"
         />
         <span
           class="ml-4 secondary--text"
@@ -33,23 +33,24 @@
           color="primary"
           text
           :disabled="!roomName"
-          @click="joinClass()"
-          v-text="'Join Class'"
+          @click="joinClassRoom()"
+          v-text="'Join'"
         />
       </v-col>
       <v-col
         v-else
         cols="6"
+        class="text-center"
       >
-        <video 
+        <video
           id="videoElement"
           autoplay
-          :muted="isInitiator"
+          :muted="isClassCreator"
           playsinline
         />
         <v-btn
           color="red"
-          dark
+          text          
           @click="leaveClass"
           v-text="'Leave Class'"
         />   

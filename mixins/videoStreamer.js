@@ -2,23 +2,25 @@ import io from 'socket.io-client'
 export default {
   data () {
     return {
-      isSocketReady: false,
-      isPeerConnectionStarted: false,
-      isInitiator: false,
+      lifecycle: {
+        isClassRequested: false,
+        isSocketReady: false,
+        isPeerConnectionStarted: false,
+      },
+      isClassCreator: false,
       localStream: null,
-      initialized: false,
       videoElementId: 'videoElement',
       socket: io.connect('https://192.168.1.70:8080', { secure: true, reconnect: true, rejectUnauthorized : false }),
     }
   },
   methods: {
-    initializeClass () {
-      this.initialized = true
+    createClassRoom () {
+      this.lifecycle.isClassRequested = true
       this.socket.emit('create', this.roomName)
       this.listenSocket()
     },
-    joinClass () {
-      this.initialized = true
+    joinClassRoom () {
+      this.lifecycle.isClassRequested = true
       this.socket.emit('join', this.roomName)
       this.listenSocket()
     },
@@ -29,7 +31,7 @@ export default {
       })
       .then(this.gotStream)
       .catch((e) => {
-        this.initialized = false
+        this.lifecycle.isClassRequested = false
         console.error('getUserMedia() error: ' + e)
       })
     },
@@ -37,7 +39,7 @@ export default {
       this.localStream = stream
       document.querySelector(`#${this.videoElementId}`).srcObject = stream
       this.sendMessage('got user media')
-      if (this.isInitiator) {
+      if (this.isClassCreator) {
         this.maybeStart()
       }
     },
@@ -45,10 +47,10 @@ export default {
       this.socket.emit('message', message)
     },
     maybeStart() {
-      if (!this.isPeerConnectionStarted && typeof this.localStream !== 'undefined' && this.isSocketReady) {
+      if (!this.lifecycle.isPeerConnectionStarted && typeof this.localStream !== 'undefined' && this.lifecycle.isSocketReady) {
         this.createPeerConnection()
-        this.isPeerConnectionStarted = true
-        if (this.isInitiator) {
+        this.lifecycle.isPeerConnectionStarted = true
+        if (this.isClassCreator) {
           this.peerConnection.addStream(this.localStream)
           this.doCall()
         }
@@ -108,53 +110,53 @@ export default {
     },
     handleRemoteHangup() {
       this.stop()
-      this.isInitiator = false
+      this.isClassCreator = false
     },
     stop() {
-      this.isPeerConnectionStarted = false
+      this.lifecycle.isPeerConnectionStarted = false
       this.peerConnection.close()
       this.peerConnection = null
     },
     listenSocket () {
       this.socket.on('created', (room) => {
         this.getUserMedia()
-        this.isInitiator = true
+        this.isClassCreator = true
       })
       this.socket.on('full', (room) => {
         alert('Room ' + room + ' is full')
-        this.initialized = false
+        this.lifecycle.isClassRequested = false
       })
       this.socket.on('notfound', (room) => {
         alert('Room ' + room + ' not found')
-        this.initialized = false
+        this.lifecycle.isClassRequested = false
       })
       this.socket.on('join', (room) =>{
         console.log('Another peer made a request to join room ' + room)
-        this.isSocketReady = true
+        this.lifecycle.isSocketReady = true
       })
       this.socket.on('joined', (room) => {
         console.log('joined: ' + room)
         this.sendMessage('got user media')
-        this.isSocketReady = true
+        this.lifecycle.isSocketReady = true
       })
       this.socket.on('message', (message) => {
         if (message === 'got user media') {
           this.maybeStart()
         } else if (message.type === 'offer') {
-          if (!this.isInitiator && !this.isPeerConnectionStarted) {
+          if (!this.isClassCreator && !this.lifecycle.isPeerConnectionStarted) {
             this.maybeStart()
           }
           this.peerConnection.setRemoteDescription(new RTCSessionDescription(message))
           this.doAnswer()
-        } else if (message.type === 'answer' && this.isPeerConnectionStarted) {
+        } else if (message.type === 'answer' && this.lifecycle.isPeerConnectionStarted) {
           this.peerConnection.setRemoteDescription(new RTCSessionDescription(message))
-        } else if (message.type === 'candidate' && this.isPeerConnectionStarted) {
+        } else if (message.type === 'candidate' && this.lifecycle.isPeerConnectionStarted) {
           var candidate = new RTCIceCandidate({
             sdpMLineIndex: message.label,
             candidate: message.candidate
           })
           this.peerConnection.addIceCandidate(candidate)
-        } else if (message === 'bye' && this.isPeerConnectionStarted) {
+        } else if (message === 'bye' && this.lifecycle.isPeerConnectionStarted) {
           this.handleRemoteHangup()
         }
       })
