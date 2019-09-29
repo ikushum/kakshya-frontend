@@ -19,10 +19,22 @@
           label="Enter Class Name"
         />
         <v-btn
-          class="primary"
+          color="primary"
           :disabled="!roomName"
-          @click="initializeStream()"
-          v-text="'Join or Create'"
+          depressed
+          @click="initializeClass()"
+          v-text="'Create Class'"
+        />
+        <span
+          class="ml-4 secondary--text"
+          v-text="'Or'"
+        />
+        <v-btn
+          color="primary"
+          text
+          :disabled="!roomName"
+          @click="joinClass()"
+          v-text="'Join Class'"
         />
       </v-col>
       <v-col
@@ -65,7 +77,7 @@ export default {
   },
   methods: {
     leaveClass () {
-      this.initialized = false
+      this.resetStream()
       this.roomName = ''
     }
   }

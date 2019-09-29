@@ -6,8 +6,9 @@
     <h1> Kakshya </h1>
     <v-btn
       color="primary"
+      text
       @click="$router.push('/classroom')"
-      v-text="'Create CLassroom'"
+      v-text="'Get Started'"
     />
   </v-col>
 </template>

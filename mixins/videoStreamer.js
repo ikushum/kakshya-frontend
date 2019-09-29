@@ -7,17 +7,22 @@ export default {
       isStarted: false,
       localStream: null,
       pc: null,
-      socket: null,
+      socket: io.connect('https://192.168.1.70:8080', { secure: true, reconnect: true, rejectUnauthorized : false }),
       initialized: false,
       videoElementId: 'videoElement'
     }
   },
   methods: {
     // todo seperate unnecessary methods from here
-    initializeStream () {
+    initializeClass () {
       this.initialized = true
-      this.getUserMedia()
-      this.initializeSocket()
+      this.socket.emit('create', this.roomName)
+      this.listenSocket()
+    },
+    joinClass () {
+      this.initialized = true
+      this.socket.emit('join', this.roomName)
+      this.listenSocket()
     },
     getUserMedia () {
       navigator.mediaDevices.getUserMedia({
@@ -47,10 +52,10 @@ export default {
       if (!this.isStarted && typeof this.localStream !== 'undefined' && this.isChannelReady) {
         console.log('>>>>>> creating peer connection');        
         this.createPeerConnection()
-        this.peerConnection.addStream(this.localStream)
         this.isStarted = true
         console.log('isInitiator', this.isInitiator)
         if (this.isInitiator) {
+          this.peerConnection.addStream(this.localStream)
           this.doCall()
         }
       }
@@ -125,30 +130,31 @@ export default {
       this.peerConnection.close()
       this.peerConnection = null
     },
-    initializeSocket () {
-      this.socket = io.connect('https://192.168.1.70:8080', { secure: true, reconnect: true, rejectUnauthorized : false })
-      this.socket.emit('create or join', this.roomName)
-      console.log('Attempted to create or  join room', this.roomName)
+    listenSocket () {
       this.socket.on('created', (room) => {
         console.log('Created room ' + room)
+        this.getUserMedia()
         this.isInitiator = true
       })
-      this.socket.on('full', function(room) {
-        console.log('Room ' + room + ' is full')
+      this.socket.on('full', (room) => {
+        alert('Room ' + room + ' is full')
+        this.initialized = false
+      })
+      this.socket.on('notfound', (room) => {
+        alert('Room ' + room + ' not found')
+        this.initialized = false
       })
       this.socket.on('join', (room) =>{
         console.log('Another peer made a request to join room ' + room)
         console.log('This peer is the initiator of room ' + room + '!')
         this.isChannelReady = true
-        // this.maybeStart()
       })
       this.socket.on('joined', (room) => {
         console.log('joined: ' + room)
+        this.sendMessage('got user media')
         this.isChannelReady = true
-        // this.createPeerConnection()
-        // this.isStarted = true
       })
-      this.socket.on('log', function(array) {
+      this.socket.on('log', (array) => {
         console.log.apply(console, array)
       })
       this.socket.on('message', (message) => {
@@ -173,6 +179,6 @@ export default {
           this.handleRemoteHangup()
         }
       })
-    }    
+    }
   }
 }
