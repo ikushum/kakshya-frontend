@@ -92,7 +92,7 @@
 
 <script>
 export default {
-
+  layout: 'accounts'
 }
 </script>
 
