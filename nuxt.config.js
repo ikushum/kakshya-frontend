@@ -28,7 +28,12 @@ export default {
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {
-      light: true
+      light: true,
+      themes: {
+        light: {
+          primary: '#63b5f6'
+        }
+      }
     }
   },
   build: {
