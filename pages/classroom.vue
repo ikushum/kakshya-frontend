@@ -2,11 +2,6 @@
   <v-col
     class="text-center"
   >
-    <v-btn
-      text
-      @click="$router.push('/')"
-      v-text="'Goto Home'"
-    />
     <v-row
       justify="center"
     >
@@ -48,23 +43,55 @@
           color="primary"
           indeterminate
         />
+        <v-bottom-navigation
+          v-model="currentView"
+          dark
+          shift
+        >
+          <v-btn>
+            <span>Video</span>
+            <v-icon>mdi-television-play</v-icon>
+          </v-btn>
+
+          <v-btn>
+            <span>Slide</span>
+            <v-icon>mdi-presentation</v-icon>
+          </v-btn>
+
+          <v-btn>
+            <span>Q&A</span>
+            <v-icon>mdi-comment-question-outline</v-icon>
+          </v-btn>
+        </v-bottom-navigation>     
         <video
-          v-show="lifecycle.videoAvailable"
+          v-show="lifecycle.videoAvailable && currentView === 0"
           id="videoElement"
           autoplay
           :muted="isClassCreator"
           playsinline
-        />
-        <div
+        />        
+
+        <!-- <div
           class="my-3"
         >
-          <v-btn
-            color="error"
-            text          
-            @click="leaveClass"
-            v-text="'Leave Class'"
-          />
-        </div>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on }">
+              <v-btn
+                slot="activator"
+                color="error"
+                fab
+                v-on="on"
+                @click="leaveClass"
+              >
+                <v-icon>
+                  mdi-exit-to-app
+                </v-icon>
+              </v-btn>
+            </template>            
+
+            <span v-text="isClassCreator ? 'Exit Room' : 'Leave Room'" />
+          </v-tooltip>
+        </div> -->
       </v-col>
     </v-row>
     <v-snackbar
@@ -85,6 +112,7 @@ export default {
   mixins: [videoStreamer],
   data () {
     return {
+      currentView: 0,
       roomName: '',
       snackbar: {
         color: 'success',

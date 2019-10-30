@@ -1,12 +1,23 @@
 <template>
   <v-app>
-    <v-container
-      class="fill-height"
+    <v-app-bar
+      color="primary"
+      dense
+      dark
+      app
     >
-      <v-row>
-        <nuxt />
-      </v-row>
-    </v-container>
+      <v-toolbar-title
+        @click="$router.push('/')"      
+      >
+        <v-btn
+          class="title  text-capitalize"
+          text
+        >
+          Kakshya
+        </v-btn>
+      </v-toolbar-title>
+    </v-app-bar>
+    <nuxt class="mt-12" />
   </v-app>
 </template>
 
