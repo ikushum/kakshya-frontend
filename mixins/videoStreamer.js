@@ -187,6 +187,9 @@ export default {
           this.handleRemoteHangup()
         }
       })
+    },
+    resetStream () {
+      alert('Comming Soon')
     }
   }
 }

@@ -188,27 +188,16 @@
             </v-card-actions>
           </template>
         </v-card>
-        <!-- <div
+        <div
           class="my-3"
         >
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on }">
-              <v-btn
-                slot="activator"
-                color="error"
-                fab
-                v-on="on"
-                @click="leaveClass"
-              >
-                <v-icon>
-                  mdi-exit-to-app
-                </v-icon>
-              </v-btn>
-            </template>            
-
-            <span v-text="isClassCreator ? 'Exit Room' : 'Leave Room'" />
-          </v-tooltip>
-        </div> -->
+          <v-btn
+            color="red"
+            text
+            @click="leaveClass"
+            v-text="isClassCreator ? 'Exit Room' : 'Leave Room'"
+          />
+        </div>
       </v-col>
     </v-row>
     <v-snackbar
@@ -226,14 +215,6 @@
 <script>
 import videoStreamer from '@/mixins/videoStreamer'
 import VuePdf from 'vue-pdf'
-
-// const toBase64 = file => new Promise((resolve, reject) => {
-//     const reader = new FileReader()
-//     reader.readAsDataURL(file)
-//     reader.onload = () => resolve(reader.result)
-//     reader.onerror = error => reject(error)
-// })
-
 export default {
   components: {VuePdf},
   mixins: [videoStreamer],
