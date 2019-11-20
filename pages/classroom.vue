@@ -2,6 +2,64 @@
   <v-col
     class="text-center"
   >
+    <v-dialog
+      v-model="pdf.showFullscreen"
+      fullscreen
+      scrollable
+    >
+      <v-card
+        dark
+      >
+        <v-toolbar
+          dark
+          height="50"
+          color="primary"
+        >
+          <v-toolbar-title>
+            Page {{ pdf.currentPage }} of {{ pdf.totalPages }}
+          </v-toolbar-title>
+          <v-spacer />
+          <v-toolbar-items>
+            <v-btn
+              :disabled="pdf.currentPage === 1"
+              depressed
+              color="primary"
+              @click="pdf.currentPage -= 1"
+            >
+              Previous
+            </v-btn>
+            <v-btn
+              :disabled="pdf.currentPage === pdf.totalPages"
+              depressed
+              color="primary"
+              @click="pdf.currentPage += 1"
+            >
+              Next
+            </v-btn>
+          </v-toolbar-items>
+          <v-spacer />
+          <v-btn
+            icon
+            dark
+            @click="pdf.showFullscreen = false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>          
+        </v-toolbar>
+        <v-card-text>      
+          <div class="d-flex justify-center">
+            <vue-pdf
+              style="width:50%"
+              :src="fileUrl" 
+              :page="pdf.currentPage"
+              @error="logPdfStatus"
+              @progress="logPdfStatus('pdf-loading')"
+              @loaded="logPdfStatus('pdf-loaded')"
+            />     
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <v-row
       justify="center"
     >
@@ -37,16 +95,9 @@
         cols="6"
         class="text-center"
       >
-        <v-progress-circular
-          v-if="!lifecycle.videoAvailable"
-          :size="50"
-          color="primary"
-          indeterminate
-        />
         <v-bottom-navigation
           v-model="currentView"
           dark
-          shift
         >
           <v-btn>
             <span>Video</span>
@@ -62,15 +113,81 @@
             <span>Q&A</span>
             <v-icon>mdi-comment-question-outline</v-icon>
           </v-btn>
-        </v-bottom-navigation>     
+        </v-bottom-navigation>
+        <v-progress-circular
+          v-if="!lifecycle.videoAvailable"
+          :size="50"
+          color="primary"
+          indeterminate
+        />
         <video
-          v-show="lifecycle.videoAvailable && currentView === 0"
+          v-show="currentView === 0 && lifecycle.videoAvailable"
           id="videoElement"
           autoplay
+          style="width:100%"
           :muted="isClassCreator"
           playsinline
-        />        
-
+        />
+        <v-card
+          v-show="currentView === 1"
+        >
+          <v-card-text v-if="!fileUrl">
+            You Haven't uploaded a pdf yet
+            <v-file-input 
+              accept=".pdf"
+              label="Upload a pdf"
+              @change="createFileUrl"
+            />
+            <v-btn
+              depressed
+              color="primary"
+            >
+              Upload
+            </v-btn>
+          </v-card-text>
+          <template
+            v-else
+          >
+            <v-card-text
+              class="black"
+            >
+              <vue-pdf
+                :src="fileUrl"
+                :page="pdf.currentPage"
+                @num-pages="pdf.totalPages = $event" 
+                @error="logPdfStatus"
+                @progress="logPdfStatus('pdf-loading')"
+                @loaded="logPdfStatus('pdf-loaded')"
+              />
+            </v-card-text>
+            <v-card-actions>
+              <v-btn
+                depressed
+                :disabled="pdf.currentPage === 1"
+                color="primary"                
+                @click="pdf.currentPage -= 1"
+              >
+                Previous
+              </v-btn>
+              <v-spacer />
+              <v-btn
+                icon
+                @click="pdf.showFullscreen = true"
+              >
+                <v-icon v-text="'mdi-fullscreen'" />
+              </v-btn>
+              <v-spacer />              
+              <v-btn
+                depressed
+                :disabled="pdf.currentPage === pdf.totalPages"
+                color="primary"                
+                @click="pdf.currentPage += 1"
+              >
+                Next
+              </v-btn>
+            </v-card-actions>
+          </template>
+        </v-card>
         <!-- <div
           class="my-3"
         >
@@ -108,12 +225,28 @@
 
 <script>
 import videoStreamer from '@/mixins/videoStreamer'
+import VuePdf from 'vue-pdf'
+
+// const toBase64 = file => new Promise((resolve, reject) => {
+//     const reader = new FileReader()
+//     reader.readAsDataURL(file)
+//     reader.onload = () => resolve(reader.result)
+//     reader.onerror = error => reject(error)
+// })
+
 export default {
+  components: {VuePdf},
   mixins: [videoStreamer],
   data () {
     return {
       currentView: 0,
       roomName: '',
+      fileUrl: null,
+      pdf: {
+        currentPage: 1,
+        totalPages: null,
+        showFullscreen: false
+      },
       snackbar: {
         color: 'success',
         display: false,
@@ -122,10 +255,16 @@ export default {
     }
   },
   methods: {
+    logPdfStatus(param) {
+      console.log(param)
+    },
+    createFileUrl(file){
+      this.fileUrl = window.URL.createObjectURL(file)
+    },
     leaveClass () {
       this.resetStream()
       this.roomName = ''
-    },
+    }
   }
 }
 </script>
