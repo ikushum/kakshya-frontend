@@ -3,6 +3,7 @@
     class="text-center"
   >
     <v-dialog
+      v-if="pdf.showFullscreen"
       v-model="pdf.showFullscreen"
       fullscreen
       scrollable
@@ -50,7 +51,7 @@
           <div class="d-flex justify-center">
             <vue-pdf
               style="width:50%"
-              :src="fileUrl" 
+              :src="pdf.fileUrl" 
               :page="pdf.currentPage"
               @error="logPdfStatus"
               @progress="logPdfStatus('pdf-loading')"
@@ -131,16 +132,17 @@
         <v-card
           v-show="currentView === 1"
         >
-          <v-card-text v-if="!fileUrl">
+          <v-card-text v-if="!pdf.fileUrl">
             You Haven't uploaded a pdf yet
             <v-file-input 
+              v-model="pdf.file"
               accept=".pdf"
               label="Upload a pdf"
-              @change="createFileUrl"
             />
             <v-btn
               depressed
               color="primary"
+              @click="uploadPdf()"
             >
               Upload
             </v-btn>
@@ -151,8 +153,13 @@
             <v-card-text
               class="black"
             >
+              <!-- 
+                todo @ishan when remote uploads pdf and the local 
+                user is in video(or any other tab), the uploaded
+                pdf is blank
+               -->
               <vue-pdf
-                :src="fileUrl"
+                :src="pdf.fileUrl"
                 :page="pdf.currentPage"
                 @num-pages="pdf.totalPages = $event" 
                 @error="logPdfStatus"
@@ -222,8 +229,9 @@ export default {
     return {
       currentView: 0,
       roomName: '',
-      fileUrl: null,
       pdf: {
+        file: null,
+        fileUrl: '',
         currentPage: 1,
         totalPages: null,
         showFullscreen: false
@@ -239,8 +247,12 @@ export default {
     logPdfStatus(param) {
       console.log(param)
     },
+    uploadPdf () {
+      this.sharePdfToClass(this.pdf.file)
+      this.createFileUrl(this.pdf.file)
+    },
     createFileUrl(file){
-      this.fileUrl = window.URL.createObjectURL(file)
+      this.pdf.fileUrl = window.URL.createObjectURL(file)
     },
     leaveClass () {
       this.resetStream()

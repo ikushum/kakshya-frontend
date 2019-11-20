@@ -8,6 +8,9 @@ export default {
         isPeerConnectionStarted: false,
         videoAvailable: false,
       },
+      peerConnection: null,
+      dataChannel: null,
+      recievingFile: [],
       isClassCreator: false,
       localStream: null,
       videoElementId: 'videoElement',
@@ -64,7 +67,11 @@ export default {
         this.peerConnection.onicecandidate = this.handleIceCandidate
         this.peerConnection.onaddstream = this.handleRemoteStreamAdded
         this.peerConnection.onremovestream = this.handleRemoteStreamRemoved
+        this.dataChannel = this.peerConnection.createDataChannel('sendDataChannel', {negotiated: true, id: 0})
+        this.listenDataChannel()       
+        this.sharePdfToClass() 
       } catch (e) {
+        console.log(e)
         this.snackbar = {
           display: true,
           text: 'Cannot create RTCPeerConnection object.',
@@ -129,7 +136,7 @@ export default {
           display: true,
           text: 'Room ' + room + ' created',
           color: 'success'
-        }        
+        }
         this.getUserMedia()
         this.isClassCreator = true
       })
@@ -190,6 +197,56 @@ export default {
     },
     resetStream () {
       alert('Comming Soon')
+    },
+    listenDataChannel () {
+      this.dataChannel.onmessage = () => {
+        let data = JSON.parse(event.data);
+        this.recievingFile.push(data.message); // pushing chunks in array
+        console.log(data)
+        if (data.last) {
+            this.snackbar = {
+              display: true,
+              text: 'The room creator just uploaded a PDF',
+              color: 'info'
+            }
+            let dataUrl = this.recievingFile.join('')
+            const blob = dataURItoBlob(dataUrl)
+            this.createFileUrl(blob)
+            this.recievingFile = []
+        }
+      }
+    },
+    sharePdfToClass () {
+      if (!this.peerConnection || !this.pdf.file) return
+      this.dataChannel.onopen = () => {
+        var reader = new window.FileReader()
+        reader.readAsDataURL(this.pdf.file)        
+        reader.onload = this.onReadAsDataURL
+      }
+    },
+    onReadAsDataURL (event, text) {
+      console.log('sending...')
+      var chunkLength = 1000
+      var data = {} // data object to transmit over data channel
+      if (event) text = event.target.result // on first invocation
+      if (text.length > chunkLength) {
+          data.message = text.slice(0, chunkLength) // getting chunk using predefined chunk length
+      } else {
+          data.message = text
+          data.last = true
+      }
+      this.dataChannel.send(JSON.stringify(data)) // use JSON.stringify for chrome!
+      var remainingDataURL = text.slice(data.message.length)
+      if (remainingDataURL.length) setTimeout(() => {
+          this.onReadAsDataURL(null, remainingDataURL) // continue transmitting
+      }, 500)
     }
   }
+}
+
+
+let dataURItoBlob = function(dataURI, dataTYPE) {
+  var binary = atob(dataURI.split(',')[1]), array = [];
+  for(var i = 0; i < binary.length; i++) array.push(binary.charCodeAt(i));
+  return new Blob([new Uint8Array(array)], {type: dataTYPE});
 }
