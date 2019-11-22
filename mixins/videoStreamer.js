@@ -68,8 +68,9 @@ export default {
         this.peerConnection.onaddstream = this.handleRemoteStreamAdded
         this.peerConnection.onremovestream = this.handleRemoteStreamRemoved
         this.dataChannel = this.peerConnection.createDataChannel('sendDataChannel', {negotiated: true, id: 0})
-        this.listenDataChannel()       
-        this.sharePdfToClass() 
+        this.listenDataChannel()  
+        this.checkIfPdfexists()     
+        // this.sharePdfToClass() 
       } catch (e) {
         console.log(e)
         this.snackbar = {
@@ -200,9 +201,9 @@ export default {
     },
     listenDataChannel () {
       this.dataChannel.onmessage = () => {
+        console.log('recieving...')
         let data = JSON.parse(event.data);
         this.recievingFile.push(data.message); // pushing chunks in array
-        console.log(data)
         if (data.last) {
             this.snackbar = {
               display: true,
@@ -216,15 +217,22 @@ export default {
         }
       }
     },
-    sharePdfToClass () {
-      if (!this.peerConnection || !this.pdf.file) return
+    checkIfPdfexists () {
+      if (!this.pdf.file) return 
       this.dataChannel.onopen = () => {
-        var reader = new window.FileReader()
-        reader.readAsDataURL(this.pdf.file)        
-        reader.onload = this.onReadAsDataURL
+        this.convertAndSend()
       }
     },
-    onReadAsDataURL (event, text) {
+    sharePdfToClass () {
+      if (!this.peerConnection) return
+      this.convertAndSend()
+    },
+    convertAndSend () {
+      var reader = new window.FileReader()
+      reader.readAsDataURL(this.pdf.file)
+      reader.onload = this.sendDataAsUrl
+    },
+    sendDataAsUrl (event, text) {
       console.log('sending...')
       var chunkLength = 1000
       var data = {} // data object to transmit over data channel
@@ -238,13 +246,11 @@ export default {
       this.dataChannel.send(JSON.stringify(data)) // use JSON.stringify for chrome!
       var remainingDataURL = text.slice(data.message.length)
       if (remainingDataURL.length) setTimeout(() => {
-          this.onReadAsDataURL(null, remainingDataURL) // continue transmitting
+          this.sendDataAsUrl(null, remainingDataURL) // continue transmitting
       }, 500)
     }
   }
 }
-
-
 let dataURItoBlob = function(dataURI, dataTYPE) {
   var binary = atob(dataURI.split(',')[1]), array = [];
   for(var i = 0; i < binary.length; i++) array.push(binary.charCodeAt(i));
