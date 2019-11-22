@@ -109,14 +109,13 @@
               cols="12"
             >
               <v-bottom-navigation
-                v-model="currentView"
                 dark
               >
-                <v-btn>
+                <v-btn @click="currentView = 0">
                   <span>Video</span>
                   <v-icon>mdi-television-play</v-icon>
                 </v-btn>
-                <v-btn>
+                <v-btn @click="currentView = 1">
                   <span>Q&A</span>
                   <v-icon>mdi-comment-question-outline</v-icon>
                 </v-btn>
@@ -135,6 +134,46 @@
                 :muted="isClassCreator"
                 playsinline
               />
+              <v-card
+                v-if="currentView === 1"
+              >
+                <v-card-text 
+                  style="max-height:50vh;overflow:auto"
+                  class="text-left"
+                >
+                  <div v-if="!messages.length">
+                    The classroom has not recieved any messages
+                  </div>
+                  <div v-else>
+                    <v-list>
+                      <v-list-item 
+                        v-for="(msg, index) in messages"
+                        :key="index"                    
+                        two-line
+                      >
+                        <v-list-item-content>
+                          <v-list-item-subtitle
+                            :class="{'blue--text' : msg.isCreator}"
+                            v-text="msg.isCreator ? 'Creator' : 'Guest'"
+                          />
+                          <v-list-item-title>{{ msg.text }}</v-list-item-title>
+                        </v-list-item-content>
+                      </v-list-item>
+                    </v-list>
+                  </div>
+                  <div
+                    id="chatBox"
+                  />
+                </v-card-text>
+                <v-divider />
+                <v-card-actions class="px-6">
+                  <v-text-field
+                    v-model="message"
+                    label="Enter Your Message"
+                    @keypress.enter="sendTextMessage"
+                  />                  
+                </v-card-actions>
+              </v-card>
             </v-col>
             <v-col
               lg="6"
@@ -143,7 +182,6 @@
             >
               <v-card>
                 <v-bottom-navigation
-                  v-model="currentView"
                   dark
                 >
                   <v-btn>
@@ -260,6 +298,8 @@ export default {
     return {
       currentView: 0,
       roomName: '',
+      message: '',
+      messages: [],
       pdf: {
         file: null,
         fileUrl: '',

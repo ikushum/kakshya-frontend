@@ -202,6 +202,11 @@ export default {
     listenDataChannel () {
       this.dataChannel.onmessage = () => {
         let data = JSON.parse(event.data);
+        if (data.textMessage) {
+          this.messages.push(data.textMessage)
+          return
+        }
+        setTimeout(() => {document.getElementById("chatBox").scrollIntoView({ block: 'end',  behavior: 'smooth' }) }, 100)
         this.pdf.uploadProgress.sharing = true
         this.pdf.uploadProgress.totalChunk = data.totalChunk
         this.pdf.uploadProgress.remainingChunk = data.remainingChunk
@@ -256,6 +261,16 @@ export default {
       if (remainingDataURL.length) setTimeout(() => {
           this.sendDataAsUrl(null, remainingDataURL) // continue transmitting
       }, 500)
+    },
+    sendTextMessage () {
+      let message = this.message
+      this.message = ''
+      if (!message) return
+      let data = {isCreator: this.isClassCreator, text: message}
+      this.messages.push(data)
+      setTimeout(() => {document.getElementById("chatBox").scrollIntoView({ block: 'end',  behavior: 'smooth' }) }, 100)    
+      if (!this.peerConnection) return
+      this.dataChannel.send(JSON.stringify({ textMessage: data}))
     }
   }
 }
