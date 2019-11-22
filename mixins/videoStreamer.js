@@ -204,9 +204,9 @@ export default {
         let data = JSON.parse(event.data);
         if (data.textMessage) {
           this.messages.push(data.textMessage)
+          setTimeout(() => {document.getElementById("chatBox").scrollIntoView({ block: 'end',  behavior: 'smooth' }) }, 100)
           return
         }
-        setTimeout(() => {document.getElementById("chatBox").scrollIntoView({ block: 'end',  behavior: 'smooth' }) }, 100)
         this.pdf.uploadProgress.sharing = true
         this.pdf.uploadProgress.totalChunk = data.totalChunk
         this.pdf.uploadProgress.remainingChunk = data.remainingChunk
