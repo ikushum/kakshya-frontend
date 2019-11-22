@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-col
-      class="text-center"
+      class="text-center py-0"
     >
       <v-dialog
         v-if="pdf.showFullscreen"
@@ -99,6 +99,9 @@
           cols="12"
           class="text-center"
         >
+          <div class="display-1 grey--text text--darken-1 pb-2">
+            Room : <b> {{ roomName }} </b>
+          </div>
           <v-row>
             <v-col
               lg="6"
@@ -149,9 +152,22 @@
                   </v-btn>
                 </v-bottom-navigation>                
                 <!-- <v-toolbar dark/> -->
-                <v-divider />
+                <v-card-text 
+                  v-if="pdf.uploadProgress.sharing"
+                >
+                  <v-progress-circular
+                    :rotate="-90"
+                    :size="100"
+                    :width="15"
+                    :value="getUploadProgress()"
+                    color="primary"
+                  >
+                    {{ Math.round(getUploadProgress()) }} %
+                  </v-progress-circular>
+                  <div>The class creator is uploading a file</div>
+                </v-card-text>                
                 <v-card-text
-                  v-if="!pdf.fileUrl" 
+                  v-else-if="!pdf.fileUrl" 
                   class="my-6"
                 >
                   <div v-if="isClassCreator">
@@ -180,11 +196,6 @@
                   <v-card-text
                     class="black"
                   >
-                    <!-- 
-                  todo @ishan when remote uploads pdf and the local 
-                  user is in video(or any other tab), the uploaded
-                  pdf is blank
-                -->
                     <vue-pdf
                       :src="pdf.fileUrl"
                       :page="pdf.currentPage"
@@ -254,7 +265,12 @@ export default {
         fileUrl: '',
         currentPage: 1,
         totalPages: null,
-        showFullscreen: false
+        showFullscreen: false,
+        uploadProgress: {
+          sharing: false,
+          totalChunk: 0,
+          remainingChunk: 0
+        }
       },
       snackbar: {
         color: 'success',
@@ -264,6 +280,9 @@ export default {
     }
   },
   methods: {
+    getUploadProgress () {
+      return 100 -((this.pdf.uploadProgress.remainingChunk / this.pdf.uploadProgress.totalChunk) *100)
+    },
     logPdfStatus(param) {
       console.log(param)
     },

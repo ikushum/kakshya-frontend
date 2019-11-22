@@ -201,8 +201,10 @@ export default {
     },
     listenDataChannel () {
       this.dataChannel.onmessage = () => {
-        console.log('recieving...')
         let data = JSON.parse(event.data);
+        this.pdf.uploadProgress.sharing = true
+        this.pdf.uploadProgress.totalChunk = data.totalChunk
+        this.pdf.uploadProgress.remainingChunk = data.remainingChunk
         this.recievingFile.push(data.message); // pushing chunks in array
         if (data.last) {
             this.snackbar = {
@@ -210,6 +212,7 @@ export default {
               text: 'The room creator just uploaded a PDF',
               color: 'info'
             }
+            this.pdf.uploadProgress.sharing = false
             let dataUrl = this.recievingFile.join('')
             const blob = dataURItoBlob(dataUrl)
             this.createFileUrl(blob)
@@ -233,18 +236,23 @@ export default {
       reader.onload = this.sendDataAsUrl
     },
     sendDataAsUrl (event, text) {
-      console.log('sending...')
       var chunkLength = 1000
       var data = {} // data object to transmit over data channel
-      if (event) text = event.target.result // on first invocation
+      if (event) { // on first invocation
+        text = event.target.result
+        this.pdf.uploadProgress.totalChunk = text.length
+      }
       if (text.length > chunkLength) {
           data.message = text.slice(0, chunkLength) // getting chunk using predefined chunk length
       } else {
           data.message = text
           data.last = true
       }
+      data.totalChunk = this.pdf.uploadProgress.totalChunk
+      data.remainingChunk = this.pdf.uploadProgress.remainingChunk
       this.dataChannel.send(JSON.stringify(data)) // use JSON.stringify for chrome!
       var remainingDataURL = text.slice(data.message.length)
+      this.pdf.uploadProgress.remainingChunk = remainingDataURL.length
       if (remainingDataURL.length) setTimeout(() => {
           this.sendDataAsUrl(null, remainingDataURL) // continue transmitting
       }, 500)
