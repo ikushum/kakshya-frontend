@@ -1,7 +1,6 @@
 <template>
   <v-container>
     <v-col
-      v-if="lifecycle.isClassAvailable"
       class="text-center py-0"
     >
       <v-row
@@ -14,7 +13,108 @@
           <div class="display-1 grey--text text--darken-1 pb-2">
             Room : <b> {{ roomName }} </b>
           </div>
-          <v-row>
+          <v-row
+            v-if="isClassCreator"
+            cols="12"
+          >
+            <v-col
+              cols="6"
+            >
+              <v-card
+                class="mx-auto"
+                tile
+              >
+                <v-list flat>
+                  <v-subheader>Join Requests</v-subheader>
+                  <v-list-item
+                    v-for="(request, index) in joinRequests"
+                    :key="index"
+                    class="text-left"
+                  >
+                    <v-list-item-content>
+                      <v-list-item-title v-text="request.user.fullname" />
+                    </v-list-item-content>
+                    <v-list-actions>
+                      <v-btn 
+                        depressed
+                        dark
+                        fab
+                        x-small
+                        color="green"
+                        @click="reactToJoinRequest(true, request.socket_id, index)"
+                      >
+                        <v-icon v-text="'mdi-check'" />
+                      </v-btn>
+                      <v-btn 
+                        depressed
+                        dark
+                        fab
+                        x-small
+                        color="red"
+                        @click="reactToJoinRequest(false, request.socket_id, index)"
+                      >
+                        <v-icon v-text="'mdi-close'" />
+                      </v-btn>
+                    </v-list-actions>
+                  </v-list-item>
+                  <div 
+                    v-if="!joinRequests.length"
+                    class="text-left px-4"
+                  >
+                    No users have requested to join at the moment
+                  </div>                  
+                </v-list>
+              </v-card>            
+            </v-col>
+            <v-col
+              cols="6"
+            >
+              <v-card
+                class="mx-auto"
+                tile
+              >
+                <v-list flat>
+                  <v-subheader>Joind Users</v-subheader>
+                  <v-list-item
+                    v-for="(request, i) in joinedUsers"
+                    :key="i"
+                    class="text-left"
+                  >
+                    <v-list-item-content>
+                      <v-list-item-title v-text="request.user.fullname" />
+                    </v-list-item-content>
+                  </v-list-item>
+                  <div 
+                    v-if="!joinedUsers.length"
+                    class="text-left px-4"
+                  >
+                    No Users have joined yet
+                  </div>
+                </v-list>
+              </v-card>            
+            </v-col>
+          </v-row>
+          <v-row justify="center">
+            <v-col cols="6">
+              <v-card
+                v-if="!isClassCreator && !isApproved"
+              >
+                <v-card-text class="pa-6">
+                  <v-progress-circular
+                    :size="100"
+                    :width="7"
+                    color="primary"
+                    class="mb-10"
+                    indeterminate
+                  />
+                  <div class="title">
+                    Waiting for approval from class creator
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+          <v-row v-if="(isClassCreator || isApproved) && lifecycle.isClassAvailable">
             <v-col
               lg="6"
               sm="6"
@@ -89,6 +189,9 @@ export default {
   middleware: 'auth',
   data () {
     return {
+      classDetails: {},
+      joinRequests: [],
+      joinedUsers: [],
       currentView: 0,
       roomName: this.$route.params.className,
       messages: [],
@@ -112,6 +215,25 @@ export default {
     this.initializeRoom()
   },
   methods: {
+    createClassRecord(name) {
+      let formValues = {
+        name,
+        created_by: this.$auth.user._id
+      }
+      this.$axios.$post('/api/class', formValues)
+        .then((response) => {
+          this.classDetails = response.result
+        })
+    },
+    joinClassRecord(userId) {
+      let formValues = {
+        joined_by: userId
+      }
+      this.$axios.$patch(`/api/class/${this.classDetails._id}`, formValues)
+        .then(() => {
+          // this.classDetails = response
+        })
+    },
     initializeRoom () {
       const permission = this.$route.query.as
       if (permission === 'creator') {

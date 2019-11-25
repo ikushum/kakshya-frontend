@@ -12,6 +12,7 @@ export default {
       dataChannel: null,
       recievingFile: [],
       isClassCreator: false,
+      isApproved: false,
       localStream: null,
       videoElementId: 'videoElement',
       socket: io.connect('https://192.168.1.70:8080', { secure: true, reconnect: true, rejectUnauthorized : false }),
@@ -23,7 +24,8 @@ export default {
       this.listenSocket()
     },
     joinClassRoom () {
-      this.socket.emit('join', this.roomName)
+      let payload = {user: this.$auth.user, room: this.roomName}
+      this.socket.emit('joinRequest', payload)
       this.listenSocket()
     },
     getUserMedia () {
@@ -136,6 +138,7 @@ export default {
           text: 'Room ' + room + ' created',
           color: 'success'
         }
+        this.createClassRecord(room)
         this.lifecycle.isClassAvailable = true
         this.getUserMedia()
         this.isClassCreator = true
@@ -158,13 +161,28 @@ export default {
           }
         })
       })
-      this.socket.on('join', (room) =>{
+      this.socket.on('joinRequest', (payload) =>{
+        this.joinRequests.push({ user:payload.user, socket_id: payload.socket_id})
         this.snackbar = {
           display: true,
-          text: 'Another peer made a request to join room' + room,
+          text: 'Another peer made a request to join room' + payload.room,
           color: 'info'
-        }              
+        }
         this.lifecycle.isSocketReady = true
+      })
+      this.socket.on('joinDecision', (payload) =>{
+        if (payload.hasAccepted) {
+          this.isApproved = true
+          this.socket.emit('join', payload.room)
+        } else {
+          this.$router.push({
+            name: 'index',
+            query: {
+              metaRoom: this.roomName,
+              metaMsg: 'full'
+            }
+          })
+        }
       })
       this.socket.on('joined', (room) => {
         this.snackbar = {
@@ -197,6 +215,15 @@ export default {
           this.handleRemoteHangup()
         }
       })
+    },
+    reactToJoinRequest (hasAccepted, socket_id, index) {
+      if (hasAccepted) {
+        this.joinClassRecord(this.joinRequests[index].user._id)
+        this.joinedUsers.push(this.joinRequests[index])
+      }
+      let payload = {room: this.roomName, hasAccepted, room_id: this.classDetails._id, socket_id}
+      this.socket.emit('joinDecision', payload)
+      this.joinRequests.splice(index, 1)
     },
     resetStream () {
       alert('Comming Soon')
