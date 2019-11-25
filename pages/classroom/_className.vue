@@ -86,6 +86,7 @@ import ChatSection from '@/components/classroom/ChatSection'
 export default {
   components: {PdfViewer, ChatSection},
   mixins: [videoStreamer],
+  middleware: 'auth',
   data () {
     return {
       currentView: 0,
