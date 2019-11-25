@@ -24,7 +24,12 @@ export default {
   buildModules: [
     '@nuxtjs/vuetify',
   ],
-  modules: [],
+  modules: [
+    '@nuxtjs/axios'
+  ],
+  axios: {
+    baseURL: 'http://localhost:3001'
+  },
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {

@@ -11,6 +11,7 @@
     "generate": "nuxt generate"
   },
   "dependencies": {
+    "@nuxtjs/axios": "^5.8.0",
     "nuxt": "^2.10.2",
     "socket.io-client": "^2.3.0",
     "vue-pdf": "^4.0.7"
