@@ -46,46 +46,11 @@
                 :muted="isClassCreator"
                 playsinline
               />
-              <v-card
+              <chat-section
                 v-if="currentView === 1"
-              >
-                <v-card-text 
-                  style="max-height:50vh;overflow:auto"
-                  class="text-left"
-                >
-                  <div v-if="!messages.length">
-                    The classroom has not recieved any messages
-                  </div>
-                  <div v-else>
-                    <v-list>
-                      <v-list-item 
-                        v-for="(msg, index) in messages"
-                        :key="index"                    
-                        two-line
-                      >
-                        <v-list-item-content>
-                          <v-list-item-subtitle
-                            :class="{'blue--text' : msg.isCreator}"
-                            v-text="msg.isCreator ? 'Creator' : 'Guest'"
-                          />
-                          <v-list-item-title>{{ msg.text }}</v-list-item-title>
-                        </v-list-item-content>
-                      </v-list-item>
-                    </v-list>
-                  </div>
-                  <div
-                    id="chatBox"
-                  />
-                </v-card-text>
-                <v-divider />
-                <v-card-actions class="px-6">
-                  <v-text-field
-                    v-model="message"
-                    label="Enter Your Message"
-                    @keypress.enter="sendTextMessage"
-                  />                  
-                </v-card-actions>
-              </v-card>
+                :messages="messages"
+                @send="sendTextMessage"
+              />
             </v-col>
             <v-col
               lg="6"
@@ -117,14 +82,14 @@
 <script>
 import videoStreamer from '@/mixins/videoStreamer'
 import PdfViewer from '@/components/classroom/PdfViewer'
+import ChatSection from '@/components/classroom/ChatSection'
 export default {
-  components: {PdfViewer},
+  components: {PdfViewer, ChatSection},
   mixins: [videoStreamer],
   data () {
     return {
       currentView: 0,
       roomName: this.$route.params.className,
-      message: '',
       messages: [],
       pdf: {
         file: null,

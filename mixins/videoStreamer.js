@@ -264,9 +264,7 @@ export default {
           this.sendDataAsUrl(null, remainingDataURL) // continue transmitting
       }, 500)
     },
-    sendTextMessage () {
-      let message = this.message
-      this.message = ''
+    sendTextMessage (message) {
       if (!message) return
       let data = {isCreator: this.isClassCreator, text: message}
       this.messages.push(data)
