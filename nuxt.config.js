@@ -53,7 +53,7 @@ export default {
       light: true,
       themes: {
         light: {
-          primary: '#63b5f6'
+          primary: '#1565c1'
         }
       }
     }

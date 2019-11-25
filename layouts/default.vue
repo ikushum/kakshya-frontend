@@ -1,10 +1,32 @@
 <template>
   <v-app>
+    <v-navigation-drawer
+      app
+      clipped
+    >
+      <v-list>
+        <v-list-item
+          v-for="item in items"
+          :key="item.title"
+          link
+          @click="$router.push(item.link)"
+        >
+          <v-list-item-icon>
+            <v-icon>{{ item.icon }}</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>    
     <v-app-bar
       color="primary"
       dense
       dark
       app
+      clipped-left
     >
       <v-toolbar-title
         @click="$router.push('/')"      
@@ -44,15 +66,23 @@
           </v-list-item>
         </v-list>
       </v-menu>      
-    </v-app-bar>
-    <nuxt class="mt-12" />
+    </v-app-bar>    
+    <v-content>
+      <nuxt class="mt-12" />
+    </v-content>
   </v-app>
 </template>
 
 <script>
 export default {
   data () {
-    return {}
+    return {
+      items: [
+        { title: 'Home', icon: 'mdi-home-circle-outline', link: '/' },
+        { title: 'User Profile', icon: 'mdi-account-outline', link: 'accounts/me' }
+      ]
+    }  
   }
 }
 </script>
+
