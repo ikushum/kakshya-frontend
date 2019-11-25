@@ -40,6 +40,11 @@ export default {
           user: { url: '/api/me', method: 'get', propertyName: 'user' }
         }
       }
+    },
+    redirect: {
+      login: '/accounts/login',
+      logout: '/accounts/login',
+      home: '/'
     }
   },
   vuetify: {
