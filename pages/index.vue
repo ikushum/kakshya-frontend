@@ -9,15 +9,25 @@
       xs="10" 
       class="text-center"
     >
-      <h1> Kakshya </h1>
+      <v-icon
+        size="150"
+        v-text="'mdi-school'"
+      />      
+      <h1>
+        Kakshya
+      </h1>
       <v-text-field
         v-model="className"
-        label="Enter Class Room Name"
+        outlined
+        class="mt-4"
+        placeholder="Enter Class Room Name"
+        label="Class Name"
       />
       <v-btn
         color="primary"
         :disabled="!className"
         depressed
+        x-large
         @click="createClass()"
         v-text="'Create'"
       />
@@ -29,6 +39,7 @@
         color="primary"
         text
         :disabled="!className"
+        x-large
         @click="joinClass()"
         v-text="'Join'"
       />
