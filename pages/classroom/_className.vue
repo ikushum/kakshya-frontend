@@ -121,13 +121,6 @@ export default {
         this.$router.push('/')
       }
     },
-    uploadPdf () {
-      this.sharePdfToClass(this.pdf.file)
-      this.createFileUrl(this.pdf.file)
-    },
-    createFileUrl(file){
-      this.pdf.fileUrl = window.URL.createObjectURL(file)
-    },
     leaveClass () {
       this.resetStream()
       this.roomName = ''

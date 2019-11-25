@@ -233,6 +233,13 @@ export default {
         this.convertAndSend()
       }
     },
+    uploadPdf () {
+      this.sharePdfToClass(this.pdf.file)
+      this.createFileUrl(this.pdf.file)
+    },
+    createFileUrl(file){
+      this.pdf.fileUrl = window.URL.createObjectURL(file)
+    },    
     sharePdfToClass () {
       if (!this.peerConnection) return
       this.convertAndSend()
