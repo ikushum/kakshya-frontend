@@ -81,6 +81,7 @@
             color="primary"
             rounded
             dark
+            @click="$router.push('/')"
           >
             Log In
           </v-btn>              
