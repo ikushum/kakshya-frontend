@@ -25,10 +25,22 @@ export default {
     '@nuxtjs/vuetify',
   ],
   modules: [
-    '@nuxtjs/axios'
+    '@nuxtjs/axios',
+    '@nuxtjs/auth'
   ],
   axios: {
     baseURL: 'http://localhost:3001'
+  },
+  auth: {
+    strategies: {
+      local: {
+        endpoints: {
+          login: { url: '/api/signin', method: 'post', propertyName: 'token' },
+          logout: false,
+          user: { url: '/api/me', method: 'get', propertyName: 'user' }
+        }
+      }
+    }
   },
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
