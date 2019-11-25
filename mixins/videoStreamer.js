@@ -3,7 +3,7 @@ export default {
   data () {
     return {
       lifecycle: {
-        isClassRequested: false,
+        isClassAvailable: false,
         isSocketReady: false,
         isPeerConnectionStarted: false,
         videoAvailable: false,
@@ -19,12 +19,10 @@ export default {
   },
   methods: {
     createClassRoom () {
-      this.lifecycle.isClassRequested = true
       this.socket.emit('create', this.roomName)
       this.listenSocket()
     },
     joinClassRoom () {
-      this.lifecycle.isClassRequested = true
       this.socket.emit('join', this.roomName)
       this.listenSocket()
     },
@@ -35,7 +33,7 @@ export default {
       })
       .then(this.gotStream)
       .catch((e) => {
-        this.lifecycle.isClassRequested = false
+        this.lifecycle.isClassAvailable = false
         console.error('getUserMedia() error: ' + e)
       })
     },
@@ -138,24 +136,27 @@ export default {
           text: 'Room ' + room + ' created',
           color: 'success'
         }
+        this.lifecycle.isClassAvailable = true
         this.getUserMedia()
         this.isClassCreator = true
       })
-      this.socket.on('full', (room) => {
-        this.snackbar = {
-          display: true,
-          text: 'Room ' + room + ' is full',
-          color: 'error'
-        }        
-        this.lifecycle.isClassRequested = false
+      this.socket.on('full', () => {
+        this.$router.push({
+          name: 'index',
+          query: {
+            metaRoom: this.roomName,
+            metaMsg: 'full'
+          }
+        })
       })
-      this.socket.on('notfound', (room) => {
-        this.snackbar = {
-          display: true,
-          text: 'Room ' + room + ' not found',
-          color: 'error'
-        }      
-        this.lifecycle.isClassRequested = false
+      this.socket.on('notfound', () => {
+        this.$router.push({
+          name: 'index',
+          query: {
+            metaRoom: this.roomName,
+            metaMsg: 'notFound'
+          }
+        })
       })
       this.socket.on('join', (room) =>{
         this.snackbar = {
@@ -170,7 +171,8 @@ export default {
           display: true,
           text: 'Room ' + room + ' joined',
           color: 'success'
-        }    
+        }
+        this.lifecycle.isClassAvailable = true
         this.sendMessage('got user media')
         this.lifecycle.isSocketReady = true
       })

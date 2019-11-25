@@ -1,6 +1,7 @@
 <template>
   <v-container>
     <v-col
+      v-if="lifecycle.isClassAvailable"
       class="text-center py-0"
     >
       <v-dialog
@@ -66,36 +67,6 @@
         justify="center"
       >
         <v-col
-          v-if="!lifecycle.isClassRequested"
-          lg="6"
-          sm="10"
-          xs="10"
-        >
-          <v-text-field
-            v-model="roomName"
-            label="Enter Class Room Name"
-          />
-          <v-btn
-            color="primary"
-            :disabled="!roomName"
-            depressed
-            @click="createClassRoom()"
-            v-text="'Create'"
-          />
-          <span
-            class="ml-4 secondary--text"
-            v-text="'Or'"
-          />
-          <v-btn
-            color="primary"
-            text
-            :disabled="!roomName"
-            @click="joinClassRoom()"
-            v-text="'Join'"
-          />
-        </v-col>
-        <v-col
-          v-else
           cols="12"
           class="text-center"
         >
@@ -274,17 +245,17 @@
             </v-col>
           </v-row>
         </v-col>
-      </v-row>
-      <v-snackbar
-        v-model="snackbar.display"
-        :color="snackbar.color"
-        right
-      >
-        <span
-          v-text="snackbar.text"
-        />
-      </v-snackbar>    
+      </v-row>   
     </v-col>
+    <v-snackbar
+      v-model="snackbar.display"
+      :color="snackbar.color"
+      right
+    >
+      <span
+        v-text="snackbar.text"
+      />
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -297,7 +268,7 @@ export default {
   data () {
     return {
       currentView: 0,
-      roomName: '',
+      roomName: this.$route.params.className,
       message: '',
       messages: [],
       pdf: {
@@ -319,7 +290,20 @@ export default {
       }
     }
   },
+  beforeMount () {
+    this.initializeRoom()
+  },
   methods: {
+    initializeRoom () {
+      const permission = this.$route.query.as
+      if (permission === 'creator') {
+        this.createClassRoom()
+      } else if (permission === 'guest') {
+        this.joinClassRoom()
+      } else {
+        this.$router.push('/')
+      }
+    },
     getUploadProgress () {
       return 100 -((this.pdf.uploadProgress.remainingChunk / this.pdf.uploadProgress.totalChunk) *100)
     },
