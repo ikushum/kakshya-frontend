@@ -29,6 +29,7 @@
         color="primary"
         text
         :disabled="!className"
+        @click="joinClass()"
         v-text="'Join'"
       />
     </v-col>
